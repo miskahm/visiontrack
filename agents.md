@@ -21,6 +21,7 @@
 ### Notes
 - Keep `todo.md` and `communications.md` updated with progress
 - Use `gh` CLI for GitHub operations
+- **Current Status**: 5 core agents implemented (71 tests, 94% coverage)
 
 ---
 
