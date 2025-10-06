@@ -25,6 +25,8 @@
 - **App Status**: Full Streamlit app with performance optimizations (IOU threshold, frame skip)
 - **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
 - **Fixed**: Duplicate buttons, flickering feed, proper button state management
+- **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
+- **Fixed**: Duplicate buttons, flickering feed, proper button state management
 
 ---
 

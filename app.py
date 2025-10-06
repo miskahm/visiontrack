@@ -252,7 +252,7 @@ def main():
                         st.metric("Detections", len(detections))
                         st.metric("Active Tracks", len(tracks))
 
-                    time.sleep(0.01)
+                    time.sleep(0.03)
                     st.rerun()
                 else:
                     st.error("Failed to read from webcam")
