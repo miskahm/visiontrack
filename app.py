@@ -187,7 +187,6 @@ def main():
             if st.button(
                 "▶️ Start Webcam",
                 type="primary",
-                use_container_width=True,
                 disabled=st.session_state.webcam_running,
             ):
                 with st.spinner("Opening webcam..."):
@@ -210,7 +209,6 @@ def main():
             if st.button(
                 "⏹️ Stop Webcam",
                 type="secondary",
-                use_container_width=True,
                 disabled=not st.session_state.webcam_running,
             ):
                 st.session_state.webcam_running = False
@@ -235,7 +233,7 @@ def main():
                     )
 
                     video_placeholder.image(
-                        annotated_frame, channels="RGB", use_container_width=True
+                        annotated_frame, channels="RGB", width="stretch"
                     )
 
                     st.session_state.webcam_frame_count += 1
@@ -303,7 +301,7 @@ def main():
                     )
 
                     video_placeholder.image(
-                        annotated_frame, channels="RGB", use_container_width=True
+                        annotated_frame, channels="RGB", width="stretch"
                     )
 
                     frame_count += 1
@@ -339,9 +337,7 @@ def main():
                 image_rgb, class_filter, show_confidence, 0
             )
 
-            video_placeholder.image(
-                annotated_image, channels="RGB", use_container_width=True
-            )
+            video_placeholder.image(annotated_image, channels="RGB", width="stretch")
 
             with stats_placeholder.container():
                 st.metric("Detections", len(detections))

@@ -85,3 +85,10 @@
 - **Main Agent**: Verified button state management prevents movement issues
 - **Main Agent**: Webcam buffer optimization confirmed working (CAP_PROP_BUFFERSIZE = 1)
 - **Main Agent**: All UI issues resolved - smooth video feed with stable controls
+
+#### Streamlit API Updates (Round 5)
+- **Main Agent**: Updated deprecated `use_container_width=True` to `width='stretch'` in all image displays
+- **Main Agent**: Removed `use_container_width` from button components (not needed)
+- **Main Agent**: Fixed 5 occurrences across webcam, video file, and image modes
+- **Main Agent**: Code now compatible with Streamlit post-2025-12-31
+- **Main Agent**: All code formatted and linted successfully

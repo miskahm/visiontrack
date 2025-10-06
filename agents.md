@@ -25,6 +25,7 @@
 - **App Status**: Full Streamlit app with performance optimizations (IOU threshold, frame skip)
 - **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
 - **Fixed**: Duplicate buttons, flickering feed, proper button state management
+- **Latest**: Updated to new Streamlit API (use_container_width → width='stretch')
 - **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
 - **Fixed**: Duplicate buttons, flickering feed, proper button state management
 
