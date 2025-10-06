@@ -182,8 +182,8 @@ pytest tests/test_tracking_agent.py::test_track_persistence -v
 ## 📸 Screenshots & Demo
 
 ### Main Interface
-![Main Interface Placeholder]
-*Coming soon: Screenshot of main tracking interface*
+<img width="1797" height="1102" alt="image" src="https://github.com/user-attachments/assets/2c003df5-eb7f-4997-ac2e-37bd72afbe8d" />
+
 
 ### Detection Results
 ![Detection Results Placeholder]
