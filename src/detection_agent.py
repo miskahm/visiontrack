@@ -26,22 +26,43 @@ class DetectionAgent:
         if self.model is None:
             raise RuntimeError("Model not loaded. Call load_model() first.")
 
+        # Convert class filter to class IDs for faster filtering
+        class_ids_filter = None
+        if class_filter:
+            class_ids_filter = [
+                cls_id
+                for cls_id, cls_name in self.model.names.items()
+                if cls_name in class_filter
+            ]
+
         results = self.model(
-            frame, conf=self.confidence_threshold, device=self.device, verbose=False
+            frame,
+            conf=self.confidence_threshold,
+            device=self.device,
+            verbose=False,
+            imgsz=640,
+            half=False,
+            max_det=50,
+            agnostic_nms=True,
+            classes=class_ids_filter,
         )
 
         detections = []
         for result in results:
             boxes = result.boxes
-            for box in boxes:
-                class_id = int(box.cls[0])
+            if len(boxes) == 0:
+                continue
+
+            # Batch process boxes for better performance
+            class_ids = boxes.cls.cpu().numpy().astype(int)
+            confidences = boxes.conf.cpu().numpy()
+            xyxy = boxes.xyxy.cpu().numpy()
+
+            for i in range(len(boxes)):
+                class_id = int(class_ids[i])
                 class_name = self.model.names[class_id]
-
-                if class_filter and class_name not in class_filter:
-                    continue
-
-                x1, y1, x2, y2 = box.xyxy[0].cpu().numpy()
-                confidence = float(box.conf[0])
+                confidence = float(confidences[i])
+                x1, y1, x2, y2 = xyxy[i]
 
                 detections.append(
                     {

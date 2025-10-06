@@ -91,19 +91,88 @@ def draw_detections(frame, detections, tracks, show_confidence=True):
 
 
 def process_frame(frame, class_filter=None, show_confidence=True, frame_skip=0):
-    if (
-        frame_skip > 0
-        and st.session_state.get("frame_count", 0) % (frame_skip + 1) != 0
-    ):
+    frame_count = st.session_state.get("frame_count", 0)
+
+    # Skip detection on some frames to improve performance
+    if frame_skip > 0 and frame_count % (frame_skip + 1) != 0:
+        # Return last annotated frame if available
+        if "last_annotated_frame" in st.session_state:
+            return (
+                st.session_state.last_annotated_frame,
+                st.session_state.get("last_detections", []),
+                st.session_state.get("last_tracks", []),
+            )
         return frame, [], []
 
     detections = st.session_state.detection_agent.detect(frame, class_filter)
-
     tracks = st.session_state.tracking_agent.update(detections)
-
     annotated_frame = draw_detections(frame, detections, tracks, show_confidence)
 
+    # Cache for frame skip
+    st.session_state.last_annotated_frame = annotated_frame
+    st.session_state.last_detections = detections
+    st.session_state.last_tracks = tracks
+
     return annotated_frame, detections, tracks
+
+
+@st.fragment(run_every=0.03)
+def webcam_fragment(video_placeholder, stats_placeholder):
+    if not st.session_state.get("webcam_running", False):
+        video_placeholder.info("Click 'Start Webcam' to begin")
+        return
+
+    if "webcam_cap" not in st.session_state:
+        st.session_state.webcam_running = False
+        video_placeholder.error("Webcam not initialized")
+        return
+
+    frame_start = time.time()
+    ret, frame = st.session_state.webcam_cap.read()
+
+    if not ret:
+        st.session_state.webcam_running = False
+        if "webcam_cap" in st.session_state:
+            st.session_state.webcam_cap.release()
+            del st.session_state.webcam_cap
+        video_placeholder.error("Failed to read from webcam")
+        return
+
+    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    class_filter = st.session_state.get("class_filter", None)
+    show_confidence = st.session_state.get("show_confidence", True)
+    frame_skip = st.session_state.get("frame_skip", 2)
+    st.session_state.frame_count = st.session_state.get("webcam_frame_count", 0)
+
+    inference_start = time.time()
+    annotated_frame, detections, tracks = process_frame(
+        frame_rgb, class_filter, show_confidence, frame_skip
+    )
+    inference_time = time.time() - inference_start
+
+    video_placeholder.image(annotated_frame, channels="RGB", width="stretch")
+
+    st.session_state.webcam_frame_count = (
+        st.session_state.get("webcam_frame_count", 0) + 1
+    )
+    elapsed_time = time.time() - st.session_state.webcam_start_time
+    fps = st.session_state.webcam_frame_count / elapsed_time if elapsed_time > 0 else 0
+
+    frame_time = time.time() - frame_start
+
+    with stats_placeholder.container():
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("FPS", f"{fps:.2f}")
+            st.metric("Frame", st.session_state.webcam_frame_count)
+        with col2:
+            st.metric("Detections", len(detections))
+            st.metric("Active Tracks", len(tracks))
+
+        st.caption(
+            f"⚡ Inference: {inference_time * 1000:.0f}ms | Total: {frame_time * 1000:.0f}ms"
+        )
 
 
 def main():
@@ -125,7 +194,7 @@ def main():
             help="Choose which objects you want to detect and track",
         )
 
-        class_filter = selected_classes if selected_classes else None
+        st.session_state.class_filter = selected_classes if selected_classes else None
 
         st.divider()
 
@@ -151,16 +220,18 @@ def main():
         )
         st.session_state.tracking_agent.iou_threshold = iou_threshold
 
-        frame_skip = st.slider(
+        st.session_state.frame_skip = st.slider(
             "Frame Skip",
             min_value=0,
             max_value=5,
-            value=0,
+            value=2,
             step=1,
-            help="Skip frames to improve performance (0 = process every frame)",
+            help="Skip frames to improve performance (0 = process every frame, 2 = process every 3rd frame - recommended)",
         )
 
-        show_confidence = st.checkbox("Show confidence scores", value=True)
+        st.session_state.show_confidence = st.checkbox(
+            "Show confidence scores", value=True
+        )
 
         st.divider()
 
@@ -168,44 +239,32 @@ def main():
             "Input Source:", ["Webcam", "Video File", "Image"], index=0
         )
 
-    col1, col2 = st.columns([2, 1])
+    # Cleanup webcam if input source changed
+    if "previous_input_source" not in st.session_state:
+        st.session_state.previous_input_source = input_source
 
-    with col1:
-        st.header("📹 Video Feed")
-        video_placeholder = st.empty()
-
-    with col2:
-        st.header("📊 Statistics")
-        stats_placeholder = st.empty()
+    if st.session_state.previous_input_source != input_source:
+        if "webcam_cap" in st.session_state:
+            st.session_state.webcam_cap.release()
+            del st.session_state.webcam_cap
+        st.session_state.webcam_running = False
+        st.session_state.previous_input_source = input_source
 
     if input_source == "Webcam":
         if "webcam_running" not in st.session_state:
             st.session_state.webcam_running = False
 
-        button_container = st.container()
-        video_container = st.container()
-
-        with button_container:
-            col_btn1, col_btn2 = st.columns(2)
-            with col_btn1:
-                start_clicked = st.button(
-                    "▶️ Start Webcam",
-                    type="primary",
-                    disabled=st.session_state.webcam_running,
-                    key="start_webcam_btn",
-                )
-
-            with col_btn2:
-                stop_clicked = st.button(
-                    "⏹️ Stop Webcam",
-                    type="secondary",
-                    disabled=not st.session_state.webcam_running,
-                    key="stop_webcam_btn",
-                )
-
-        if start_clicked and not st.session_state.webcam_running:
-            with st.spinner("Opening webcam..."):
-                cap = cv2.VideoCapture(0)
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            if st.button(
+                "▶️ Start Webcam",
+                type="primary",
+                disabled=st.session_state.webcam_running,
+                key="start_webcam_btn",
+            ):
+                cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
+                cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+                cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
                 cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
                 if not cap.isOpened():
@@ -220,62 +279,45 @@ def main():
                     st.session_state.webcam_start_time = time.time()
                     st.rerun()
 
-        if stop_clicked and st.session_state.webcam_running:
-            st.session_state.webcam_running = False
-            if "webcam_cap" in st.session_state:
-                st.session_state.webcam_cap.release()
-                del st.session_state.webcam_cap
-            st.rerun()
+        with col_btn2:
+            if st.button(
+                "⏹️ Stop Webcam",
+                type="secondary",
+                disabled=not st.session_state.webcam_running,
+                key="stop_webcam_btn",
+            ):
+                st.session_state.webcam_running = False
+                if "webcam_cap" in st.session_state:
+                    st.session_state.webcam_cap.release()
+                    del st.session_state.webcam_cap
+                st.rerun()
 
-        with video_container:
-            if st.session_state.webcam_running:
-                if "webcam_cap" not in st.session_state:
-                    st.error("Webcam not initialized")
-                    st.session_state.webcam_running = False
-                else:
-                    ret, frame = st.session_state.webcam_cap.read()
+        col1, col2 = st.columns([2, 1])
 
-                    if ret:
-                        frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                        st.session_state.frame_count = (
-                            st.session_state.webcam_frame_count
-                        )
+        with col1:
+            st.header("📹 Video Feed")
+            video_placeholder = st.empty()
 
-                        annotated_frame, detections, tracks = process_frame(
-                            frame_rgb, class_filter, show_confidence, frame_skip
-                        )
+        with col2:
+            st.header("📊 Statistics")
+            stats_placeholder = st.empty()
 
-                        video_placeholder.image(
-                            annotated_frame, channels="RGB", width="stretch"
-                        )
-
-                        st.session_state.webcam_frame_count += 1
-                        elapsed_time = time.time() - st.session_state.webcam_start_time
-                        fps = (
-                            st.session_state.webcam_frame_count / elapsed_time
-                            if elapsed_time > 0
-                            else 0
-                        )
-
-                        with stats_placeholder.container():
-                            st.metric("FPS", f"{fps:.2f}")
-                            st.metric("Frame", st.session_state.webcam_frame_count)
-                            st.metric("Detections", len(detections))
-                            st.metric("Active Tracks", len(tracks))
-
-                        time.sleep(0.03)
-                        st.rerun()
-                    else:
-                        st.error("Failed to read from webcam")
-                        st.session_state.webcam_running = False
-                        if "webcam_cap" in st.session_state:
-                            st.session_state.webcam_cap.release()
-                            del st.session_state.webcam_cap
+        webcam_fragment(video_placeholder, stats_placeholder)
 
     elif input_source == "Video File":
         uploaded_file = st.file_uploader(
             "Upload a video file", type=["mp4", "avi", "mov"]
         )
+
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            st.header("📹 Video Feed")
+            video_placeholder = st.empty()
+
+        with col2:
+            st.header("📊 Statistics")
+            stats_placeholder = st.empty()
 
         if uploaded_file is not None:
             tfile = Path("temp_video.mp4")
@@ -309,6 +351,10 @@ def main():
 
                     st.session_state.frame_count = frame_count
 
+                    class_filter = st.session_state.get("class_filter", None)
+                    show_confidence = st.session_state.get("show_confidence", True)
+                    frame_skip = st.session_state.get("frame_skip", 0)
+
                     annotated_frame, detections, tracks = process_frame(
                         frame_rgb, class_filter, show_confidence, frame_skip
                     )
@@ -327,7 +373,7 @@ def main():
                         st.metric("Detections", len(detections))
                         st.metric("Active Tracks", len(tracks))
 
-                    progress_bar.progress(frame_count / total_frames)
+                    progress_bar.progress(min(frame_count / total_frames, 1.0))
 
                 cap.release()
                 tfile.unlink()
@@ -338,6 +384,16 @@ def main():
             "Upload an image", type=["jpg", "jpeg", "png"]
         )
 
+        col1, col2 = st.columns([2, 1])
+
+        with col1:
+            st.header("📹 Video Feed")
+            video_placeholder = st.empty()
+
+        with col2:
+            st.header("📊 Statistics")
+            stats_placeholder = st.empty()
+
         if uploaded_image is not None:
             file_bytes = np.asarray(bytearray(uploaded_image.read()), dtype=np.uint8)
             image = cv2.imdecode(file_bytes, cv2.IMREAD_COLOR)
@@ -345,6 +401,9 @@ def main():
 
             st.session_state.tracking_agent.reset()
             st.session_state.frame_count = 0
+
+            class_filter = st.session_state.get("class_filter", None)
+            show_confidence = st.session_state.get("show_confidence", True)
 
             annotated_image, detections, tracks = process_frame(
                 image_rgb, class_filter, show_confidence, 0

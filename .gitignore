@@ -45,12 +45,17 @@ Thumbs.db
 models/*.pt
 models/*.pth
 models/*.onnx
+!yolov8n.pt
 *.mp4
 *.avi
 *.mov
 outputs/
 logs/
 *.log
+temp_video.mp4
+issue.md
+todo.md
+communications.md
 
 # Jupyter
 .ipynb_checkpoints/
@@ -64,3 +69,7 @@ htmlcov/
 # Environment
 .env
 .env.local
+
+# OpenCode AI assistant files
+.opencode/
+agents.md
