@@ -1,10 +1,12 @@
 # TODO
 
 ## 🚀 Project Setup
-- [ ] Create `requirements.txt` with dependencies (ultralytics, opencv-python, streamlit, etc.)
-- [ ] Set up project structure (src/, tests/, models/, config/)
-- [ ] Create `config.yaml` for hyperparameters
-- [ ] Add `.gitignore` for Python project
+- [x] Create `requirements.txt` with dependencies (ultralytics, opencv-python, streamlit, etc.)
+- [x] Set up project structure (src/, tests/, models/, config/)
+- [x] Create `config.yaml` for hyperparameters
+- [x] Add `.gitignore` for Python project
+- [x] Initialize git repository
+- [x] Create GitHub repository
 
 ## 🔧 Core Implementation
 - [ ] Implement `DetectionAgent` for YOLO inference
@@ -21,6 +23,6 @@
 - [ ] Set up formatting (black, isort)
 
 ## 📝 Documentation
-- [ ] Write README.md with setup instructions
+- [x] Write README.md with setup instructions
 - [ ] Document API/module interfaces
 - [ ] Add usage examples
