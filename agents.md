@@ -23,6 +23,7 @@
 - Use `gh` CLI for GitHub operations
 - **Current Status**: 5 core agents implemented (71 tests, 94% coverage)
 - **App Status**: Full Streamlit app with performance optimizations (IOU threshold, frame skip)
+- **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
 
 ---
 

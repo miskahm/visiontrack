@@ -18,6 +18,9 @@
 - [x] Integrate all agents in working demo
 - [x] Fix crash when removing all tracked objects
 - [x] Add performance optimizations (IOU threshold, frame skip)
+- [x] Enable real-time parameter adjustment without restart
+- [x] Fix slow webcam startup with model caching
+- [x] Optimize webcam buffer and session state management
 
 ## 🧪 Testing & Quality
 - [x] Write unit tests for detection (8 tests)

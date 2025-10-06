@@ -50,7 +50,7 @@
 - **Main Agent**: Formatted and linted all code
 - **Main Agent**: Committed and pushed complete application to GitHub
 
-#### Bug Fixes & Performance Improvements
+#### Bug Fixes & Performance Improvements (Round 1)
 - **Main Agent**: Fixed crash when removing all tracked objects (class_filter now handles empty list)
 - **Main Agent**: Added IOU threshold slider for tracking accuracy control (0.1-0.9)
 - **Main Agent**: Added frame skip slider for performance optimization (0-5 frames)
@@ -58,3 +58,14 @@
 - **Main Agent**: Added frame_count to session state for frame skip logic
 - **Main Agent**: Updated README with performance tips
 - **Main Agent**: Updated AGENTS.md and todo.md with latest status
+
+#### Real-time Parameter Updates & Webcam Optimization (Round 2)
+- **Main Agent**: Implemented @st.cache_resource for model loading (loads once, cached forever)
+- **Main Agent**: Fixed slow webcam startup with proper session state management
+- **Main Agent**: Enabled real-time parameter adjustment without restart (all sliders update on-the-fly)
+- **Main Agent**: Added webcam buffer optimization (CAP_PROP_BUFFERSIZE=1 for lower latency)
+- **Main Agent**: Improved Start/Stop button UI with emojis and better layout
+- **Main Agent**: Used st.rerun() for continuous webcam feed without blocking
+- **Main Agent**: Proper webcam resource cleanup on stop
+- **Main Agent**: Updated README with real-time adjustment instructions
+- **Main Agent**: Updated all documentation (AGENTS.md, todo.md, communications.md)
