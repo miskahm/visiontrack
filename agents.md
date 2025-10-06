@@ -26,6 +26,7 @@
 - **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
 - **Fixed**: Duplicate buttons, flickering feed, proper button state management
 - **Latest**: Updated to new Streamlit API (use_container_width → width='stretch')
+- **Latest**: Fixed button spawning/flickering with separate button and video containers
 - **Latest**: Real-time parameter adjustment, fast webcam startup, model caching
 - **Fixed**: Duplicate buttons, flickering feed, proper button state management
 

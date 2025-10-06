@@ -92,3 +92,12 @@
 - **Main Agent**: Fixed 5 occurrences across webcam, video file, and image modes
 - **Main Agent**: Code now compatible with Streamlit post-2025-12-31
 - **Main Agent**: All code formatted and linted successfully
+
+#### Button Spawning & Flickering Fix (Round 6)
+- **Main Agent**: Fixed duplicate button spawning by separating button_container and video_container
+- **Main Agent**: Buttons now render once at top, video content updates in separate container below
+- **Main Agent**: Added unique button keys (start_webcam_btn, stop_webcam_btn) to prevent duplicates
+- **Main Agent**: Fixed screen flickering caused by buttons moving around during st.rerun()
+- **Main Agent**: Improved button click handling with start_clicked and stop_clicked variables
+- **Main Agent**: Video feed now updates smoothly without affecting button positions
+- **Main Agent**: Proper container separation eliminates layout shift issues
