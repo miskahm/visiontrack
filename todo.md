@@ -21,6 +21,9 @@
 - [x] Enable real-time parameter adjustment without restart
 - [x] Fix slow webcam startup with model caching
 - [x] Optimize webcam buffer and session state management
+- [x] Fix duplicate Start/Stop buttons bug
+- [x] Fix flickering/duplicating video feed issue
+- [x] Proper button state management with disabled states
 
 ## 🧪 Testing & Quality
 - [x] Write unit tests for detection (8 tests)

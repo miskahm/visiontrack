@@ -179,78 +179,87 @@ def main():
         stats_placeholder = st.empty()
 
     if input_source == "Webcam":
-        col_btn1, col_btn2 = st.columns(2)
-        with col_btn1:
-            start_button = st.button(
-                "▶️ Start Webcam", type="primary", use_container_width=True
-            )
-        with col_btn2:
-            stop_button = st.button(
-                "⏹️ Stop Webcam", type="secondary", use_container_width=True
-            )
-
         if "webcam_running" not in st.session_state:
             st.session_state.webcam_running = False
 
-        if start_button:
-            st.session_state.webcam_running = True
-        if stop_button:
-            st.session_state.webcam_running = False
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            if st.button(
+                "▶️ Start Webcam",
+                type="primary",
+                use_container_width=True,
+                disabled=st.session_state.webcam_running,
+            ):
+                with st.spinner("Opening webcam..."):
+                    cap = cv2.VideoCapture(0)
+                    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
+                    if not cap.isOpened():
+                        st.error("Cannot access webcam")
+                    else:
+                        st.session_state.webcam_cap = cap
+                        st.session_state.webcam_running = True
+                        st.session_state.tracking_agent.reset()
+                        st.session_state.logging_agent.reset_metrics()
+                        st.session_state.frame_count = 0
+                        st.session_state.webcam_frame_count = 0
+                        st.session_state.webcam_start_time = time.time()
+                        st.rerun()
+
+        with col_btn2:
+            if st.button(
+                "⏹️ Stop Webcam",
+                type="secondary",
+                use_container_width=True,
+                disabled=not st.session_state.webcam_running,
+            ):
+                st.session_state.webcam_running = False
+                if "webcam_cap" in st.session_state:
+                    st.session_state.webcam_cap.release()
+                    del st.session_state.webcam_cap
+                st.rerun()
 
         if st.session_state.webcam_running:
             if "webcam_cap" not in st.session_state:
-                with st.spinner("Opening webcam..."):
-                    st.session_state.webcam_cap = cv2.VideoCapture(0)
-                    st.session_state.webcam_cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
-                if not st.session_state.webcam_cap.isOpened():
-                    st.error("Cannot access webcam")
-                    st.session_state.webcam_running = False
-                    return
-
-                st.session_state.tracking_agent.reset()
-                st.session_state.logging_agent.reset_metrics()
-                st.session_state.frame_count = 0
-                st.session_state.webcam_frame_count = 0
-                st.session_state.webcam_start_time = time.time()
-
-            ret, frame = st.session_state.webcam_cap.read()
-
-            if ret:
-                frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-
-                st.session_state.frame_count = st.session_state.webcam_frame_count
-
-                annotated_frame, detections, tracks = process_frame(
-                    frame_rgb, class_filter, show_confidence, frame_skip
-                )
-
-                video_placeholder.image(
-                    annotated_frame, channels="RGB", use_container_width=True
-                )
-
-                st.session_state.webcam_frame_count += 1
-                elapsed_time = time.time() - st.session_state.webcam_start_time
-                fps = (
-                    st.session_state.webcam_frame_count / elapsed_time
-                    if elapsed_time > 0
-                    else 0
-                )
-
-                with stats_placeholder.container():
-                    st.metric("FPS", f"{fps:.2f}")
-                    st.metric("Frame", st.session_state.webcam_frame_count)
-                    st.metric("Detections", len(detections))
-                    st.metric("Active Tracks", len(tracks))
-
-                st.rerun()
-            else:
-                st.error("Failed to read from webcam")
+                st.error("Webcam not initialized")
                 st.session_state.webcam_running = False
-        else:
-            if "webcam_cap" in st.session_state:
-                st.session_state.webcam_cap.release()
-                del st.session_state.webcam_cap
+            else:
+                ret, frame = st.session_state.webcam_cap.read()
+
+                if ret:
+                    frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    st.session_state.frame_count = st.session_state.webcam_frame_count
+
+                    annotated_frame, detections, tracks = process_frame(
+                        frame_rgb, class_filter, show_confidence, frame_skip
+                    )
+
+                    video_placeholder.image(
+                        annotated_frame, channels="RGB", use_container_width=True
+                    )
+
+                    st.session_state.webcam_frame_count += 1
+                    elapsed_time = time.time() - st.session_state.webcam_start_time
+                    fps = (
+                        st.session_state.webcam_frame_count / elapsed_time
+                        if elapsed_time > 0
+                        else 0
+                    )
+
+                    with stats_placeholder.container():
+                        st.metric("FPS", f"{fps:.2f}")
+                        st.metric("Frame", st.session_state.webcam_frame_count)
+                        st.metric("Detections", len(detections))
+                        st.metric("Active Tracks", len(tracks))
+
+                    time.sleep(0.01)
+                    st.rerun()
+                else:
+                    st.error("Failed to read from webcam")
+                    st.session_state.webcam_running = False
+                    if "webcam_cap" in st.session_state:
+                        st.session_state.webcam_cap.release()
+                        del st.session_state.webcam_cap
 
     elif input_source == "Video File":
         uploaded_file = st.file_uploader(

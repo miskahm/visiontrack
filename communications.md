@@ -69,3 +69,13 @@
 - **Main Agent**: Proper webcam resource cleanup on stop
 - **Main Agent**: Updated README with real-time adjustment instructions
 - **Main Agent**: Updated all documentation (AGENTS.md, todo.md, communications.md)
+
+#### Critical Bug Fixes - Webcam Issues (Round 3)
+- **Task Agent**: Debugged and identified infinite rerun loop and button duplication issues
+- **Main Agent**: Fixed duplicate Start/Stop buttons appearing (both buttons now always visible)
+- **Main Agent**: Added button disabled state to prevent double-clicking
+- **Main Agent**: Fixed flickering by showing both buttons but disabling inactive one
+- **Main Agent**: Improved webcam initialization with spinner feedback
+- **Main Agent**: Better error handling when webcam not initialized
+- **Main Agent**: Maintained st.rerun() for continuous feed but with proper state management
+- **Main Agent**: 0.01s sleep to prevent CPU spike while allowing parameter updates
