@@ -83,7 +83,13 @@ def draw_detections(frame, detections, tracks, show_confidence=True):
     return annotated_frame
 
 
-def process_frame(frame, class_filter=None, show_confidence=True):
+def process_frame(frame, class_filter=None, show_confidence=True, frame_skip=0):
+    if (
+        frame_skip > 0
+        and st.session_state.get("frame_count", 0) % (frame_skip + 1) != 0
+    ):
+        return frame, [], []
+
     detections = st.session_state.detection_agent.detect(frame, class_filter)
 
     tracks = st.session_state.tracking_agent.update(detections)
@@ -116,6 +122,8 @@ def main():
 
         st.divider()
 
+        st.subheader("Detection Settings")
+
         confidence_threshold = st.slider(
             "Confidence Threshold",
             min_value=0.1,
@@ -125,6 +133,25 @@ def main():
             help="Minimum confidence for detections",
         )
         st.session_state.detection_agent.confidence_threshold = confidence_threshold
+
+        iou_threshold = st.slider(
+            "IOU Threshold",
+            min_value=0.1,
+            max_value=0.9,
+            value=0.3,
+            step=0.05,
+            help="Intersection over Union threshold for tracking",
+        )
+        st.session_state.tracking_agent.iou_threshold = iou_threshold
+
+        frame_skip = st.slider(
+            "Frame Skip",
+            min_value=0,
+            max_value=5,
+            value=0,
+            step=1,
+            help="Skip frames to improve performance (0 = process every frame)",
+        )
 
         show_confidence = st.checkbox("Show confidence scores", value=True)
 
@@ -157,6 +184,7 @@ def main():
 
             st.session_state.tracking_agent.reset()
             st.session_state.logging_agent.reset_metrics()
+            st.session_state.frame_count = 0
 
             frame_count = 0
             start_time = time.time()
@@ -169,8 +197,10 @@ def main():
 
                 frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+                st.session_state.frame_count = frame_count
+
                 annotated_frame, detections, tracks = process_frame(
-                    frame_rgb, class_filter, show_confidence
+                    frame_rgb, class_filter, show_confidence, frame_skip
                 )
 
                 video_placeholder.image(
@@ -209,6 +239,7 @@ def main():
 
             st.session_state.tracking_agent.reset()
             st.session_state.logging_agent.reset_metrics()
+            st.session_state.frame_count = 0
 
             frame_count = 0
             start_time = time.time()
@@ -226,8 +257,10 @@ def main():
 
                     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
+                    st.session_state.frame_count = frame_count
+
                     annotated_frame, detections, tracks = process_frame(
-                        frame_rgb, class_filter, show_confidence
+                        frame_rgb, class_filter, show_confidence, frame_skip
                     )
 
                     video_placeholder.image(
@@ -261,9 +294,10 @@ def main():
             image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
 
             st.session_state.tracking_agent.reset()
+            st.session_state.frame_count = 0
 
             annotated_image, detections, tracks = process_frame(
-                image_rgb, class_filter, show_confidence
+                image_rgb, class_filter, show_confidence, 0
             )
 
             video_placeholder.image(

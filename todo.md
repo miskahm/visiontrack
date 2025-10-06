@@ -14,8 +14,10 @@
 - [x] Implement `ModelManagerAgent` for loading/switching YOLO models (12 tests, 90% coverage)
 - [x] Implement `LabelAgent` for validating object names (22 tests, 98% coverage)
 - [x] Implement `LoggingAgent` for logging and metrics (18 tests, 100% coverage)
-- [ ] Create main `app.py` for Streamlit application
-- [ ] Integrate all agents in working demo
+- [x] Create main `app.py` for Streamlit application
+- [x] Integrate all agents in working demo
+- [x] Fix crash when removing all tracked objects
+- [x] Add performance optimizations (IOU threshold, frame skip)
 
 ## 🧪 Testing & Quality
 - [x] Write unit tests for detection (8 tests)

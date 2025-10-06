@@ -49,3 +49,12 @@
 - **Main Agent**: Updated README with comprehensive usage instructions
 - **Main Agent**: Formatted and linted all code
 - **Main Agent**: Committed and pushed complete application to GitHub
+
+#### Bug Fixes & Performance Improvements
+- **Main Agent**: Fixed crash when removing all tracked objects (class_filter now handles empty list)
+- **Main Agent**: Added IOU threshold slider for tracking accuracy control (0.1-0.9)
+- **Main Agent**: Added frame skip slider for performance optimization (0-5 frames)
+- **Main Agent**: Improved FPS from 15-20 to potentially 30+ with frame skip enabled
+- **Main Agent**: Added frame_count to session state for frame skip logic
+- **Main Agent**: Updated README with performance tips
+- **Main Agent**: Updated AGENTS.md and todo.md with latest status
